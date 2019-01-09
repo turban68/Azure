@@ -1,0 +1,144 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "EnvironmentNamePrefix": {
+      "value": "GLI"
+    },
+    "StagingName": {
+      "value": "staging"
+    },
+    "EnvironmentType": {
+      "value": "PROD"
+    },
+    "AppServiceSKU": {
+      "value": {
+        "family": "S",
+        "name": "S2",
+        "size": "S2",
+        "tier": "Standard",
+        "capacity": 1
+      }
+    },
+    "ServicesNames": {
+      "value": [
+        "api-gallery",
+        "api-internal",
+        "api",
+        "jobccd",
+        "jobda",
+        "jobdatabase",
+        "jobdmo",
+        "jobimageprocessor",
+        "jobimportdata",
+        "jobnotificationgenerator",
+        "jobtia",
+        "static"
+      ]
+    },
+    "ContainerNames": {
+      "value": [
+        "client-zone-file",
+        "client-zone-file-public",
+        "client-zone-file-temp",
+        "import",
+        "klientzone"
+      ]
+    },
+    "BusTopics": {
+      "value": [
+        "accountstatuschanged",
+        "addresschanged",
+        "agreementchanged",
+        "claimfileprocess",
+        "contactchanged",
+        "dmomessage",
+        "fileprocess",
+        "messagetoadjuster",
+        "partnerchanged",
+        "policystatechange",
+        "registeredcommunicationagreementchanged",
+        "syncactiveclaims",
+        "syncpartnerdata",
+        "syncpartnerinbox"
+      ]
+    },
+    "SqlServerAdminPassword": {
+      "reference": {
+        "keyVault": {
+          "id": "/subscriptions/1f729d6a-c534-46fe-8a85-8cb2e7b369da/resourceGroups/cp-operations-management/providers/Microsoft.KeyVault/vaults/cp-prod-keyvault"
+        },
+        "secretName": "sql-server-admin-login-password"
+      }
+
+    },
+    "KZ-SSLCertificate": {
+      "reference": {
+        "keyVault": {
+          "id": "/subscriptions/1f729d6a-c534-46fe-8a85-8cb2e7b369da/resourceGroups/cp-operations-management/providers/Microsoft.KeyVault/vaults/cp-prod-keyvault"
+        },
+        "secretName": "c-kz-prod-cert"
+      }
+
+    },
+    "KZ-SSLCertificatePassword": {
+      "reference": {
+        "keyVault": {
+          "id": "/subscriptions/1f729d6a-c534-46fe-8a85-8cb2e7b369da/resourceGroups/cp-operations-management/providers/Microsoft.KeyVault/vaults/cp-prod-keyvault"
+        },
+        "secretName": "c-kz-prod-cert-password"
+      }
+    },
+    "SqlSKU": {
+      "value": {
+        "name": "S1",
+        "tier": "Standard"
+      }
+    },
+    "SqlServerFirewallRules": {
+      "value": [
+        {
+          "name": "AllowAllWindowsAzureIps",
+          "startIpAddress": "0.0.0.0",
+          "endIpAddress": "0.0.0.0"
+        },
+        {
+          "name": "CP rozsah 1",
+          "startIpAddress": "194.228.18.1",
+          "endIpAddress": "194.228.18.254"
+        },
+        {
+          "name": "CP rozsah 2",
+          "startIpAddress": "88.103.215.1",
+          "endIpAddress": "88.103.215.254"
+        },
+        {
+          "name": "CP rozsah 3",
+          "startIpAddress": "80.188.157.1",
+          "endIpAddress": "80.188.157.254"
+        },
+        {
+          "name": "CP rozsah 4",
+          "startIpAddress": "80.188.241.1",
+          "endIpAddress": "80.188.241.254"
+        },
+        {
+          "name": "CP rozsah 5",
+          "startIpAddress": "92.246.52.1",
+          "endIpAddress": "92.246.52.254"
+        },
+        {
+          "name": "CP rozsah 6",
+          "startIpAddress": "92.246.53.1",
+          "endIpAddress": "92.246.53.254"
+        },
+        {
+          "name": "Query editor",
+          "startIpAddress": "104.40.130.216",
+          "endIpAddress": "104.40.130.216"
+        }
+      ]
+    }
+
+  }
+}

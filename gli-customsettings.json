@@ -1,0 +1,989 @@
+﻿{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "EnvironmentNamePrefix": {
+      "type": "string",
+      "metadata": {
+        "description": "Environment name prefix identifier for name convention KZ-xx-Resource-Type"
+      }
+    },
+    "EnvironmentType": {
+      "type": "string",
+      "allowedValues": [
+        "PROD",
+        "TEST",
+        "DEV",
+        "mvSWONE"
+      ],
+      "metadata": {
+        "description": "Environment purpose identifier for name convention KZ-Prefix-Resource-xx"
+      }
+    },
+    "ClientZone:BusinessLogic:Security:SocialNetworkSettings:FacebookSecret": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Facebook password"
+      }
+    },
+    "ClientZone:Core:SecuritySettings:ClientZoneUserOperationWSPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Client zone user operation WS password"
+      }
+    },
+    "ClientZone:Integration:Core:AlsbSettings:Password": {
+      "type": "securestring",
+      "metadata": {
+        "description": "AlsbSettings password"
+      }
+    },
+    "ClientZone:Core:SecuritySettings:TokenSecurityKey": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Token security key"
+      }
+    },
+    "ClientZone:Core:SecuritySettings:TokenECPointX": {
+      "type": "securestring",
+      "metadata": {
+        "description": "TokenECPointX"
+      }
+    },
+    "ClientZone:Core:SecuritySettings:TokenECPointY": {
+      "type": "securestring",
+      "metadata": {
+        "description": "TokenECPointY"
+      }
+    },
+    "AppDataContextAppUserName": {
+      "type": "string",
+      "metadata": {
+        "description": "Username for AppDataContext application user"
+      }
+    },
+    "AppDataContextAppPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Password for AppDataContext application user"
+      }
+    },
+    "AppDataContextPowerUserName": {
+      "type": "string",
+      "metadata": {
+        "description": "Username for AppDataContext power user"
+      }
+    },
+    "AppDataContextPowerPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Password for AppDataContext power user"
+      }
+    },
+    "DataContextAppUserName": {
+      "type": "string",
+      "metadata": {
+        "description": "Username for DataContext application user"
+      }
+    },
+    "DataContextAppPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Password for DataContext application user"
+      }
+    },
+    "DataContextPowerUserName": {
+      "type": "string",
+      "metadata": {
+        "description": "Username for DataContext power user"
+      }
+    },
+    "DataContextPowerPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Password for DataContext power user"
+      }
+    },
+    "ImportDataContextAppUserName": {
+      "type": "string",
+      "metadata": {
+        "description": "Username for ImportData application user"
+      }
+    },
+    "ImportDataContextAppPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Password for ImportData application user"
+      }
+    },
+    "ImportDataContextPowerUserName": {
+      "type": "string",
+      "metadata": {
+        "description": "Username for ImportData power user"
+      }
+    },
+    "ImportDataContextPowerPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Password for ImportData power user"
+      }
+    },
+    "ServiceBusConnectionString": {
+      "type": "string",
+      "metadata": {
+        "description": "SB connection string as returned by gli.json - i.e. Endpoint=sb://kz-gli-bus-mvswone.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=UaWwza5zclkoa6zSoT34oPvHMGmoRUfjFe5ZeZ9KM00="
+      }
+    },
+    "InsightsComponentName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the Insights component provider - Returned by uni.custom.json"
+      }
+    },
+    "UNIZONE-RG-name": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the RG used for UNIZONE part - Returned by uni.custom.json"
+      }
+    },
+    "ClientZone:Integration:Unizone:UnizoneAdapterSettings:Password": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Password for Unizone adapter"
+      }
+    },
+    "FileStoreName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of filestore"
+      }
+    },
+    "FileStorePassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Password for filestore"
+      }
+    },
+    "ServiceBusSharedKey": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Password for ServiceBus"
+      }
+    },
+    "GliDBName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of DB schema"
+      }
+    },
+    "GliSQLName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of SQL server"
+      }
+    },
+    "AppServiceSKU": {
+      "type": "object",
+      "metadata": {
+        "description": "Plan's pricing tier SKU. Check details at https://azure.microsoft.com/en-us/pricing/details/app-service/"
+      }
+    }
+  },
+  "variables": {
+    "EnvironmentNamePrefix": "[concat('KZ-',parameters('EnvironmentNamePrefix'))]",
+    "EnvironmentType": "[parameters('EnvironmentType')]",
+    "ServerFarmName": "[concat(variables('EnvironmentNamePrefix'), '-', variables('EnvironmentType'))]",
+    "Location": "[resourceGroup().location]",
+    "Unizone-RG": "[parameters('UNIZONE-RG-name')]",
+    "InsightsComponentName": "[parameters('InsightsComponentName')]",
+    "AppServiceSKU": "[parameters('AppServiceSKU')]",
+    "ServiceBusEndpoint": "[concat(parameters('ServiceBusConnectionString'),parameters('ServiceBusSharedKey'))]",
+    
+    "AppDataContextApp": "[concat('Server=tcp:',parameters('GliSQLName'),'.database.windows.net,1433;Initial Catalog=',parameters('GliDBName'),';Persist Security Info=False;User ID=',parameters('AppDataContextAppUserName'),';Password=',parameters('AppDataContextAppPassword'),';MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;')]",
+    "DataContextApp": "[concat('Server=tcp:',parameters('GliSQLName'),'.database.windows.net,1433;Initial Catalog=',parameters('GliDBName'),';Persist Security Info=False;User ID=',parameters('DataContextAppUserName'),';Password=',parameters('DataContextAppPassword'),';MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;')]",
+    "ImportDataContextApp": "[concat('Server=tcp:',parameters('GliSQLName'),'.database.windows.net,1433;Initial Catalog=',parameters('GliDBName'),';Persist Security Info=False;User ID=',parameters('ImportDataContextAppUserName'),';Password=',parameters('ImportDataContextAppPassword'),';MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;')]",
+
+    "AppDataContextPower": "[concat('Server=tcp:',parameters('GliSQLName'),'.database.windows.net,1433;Initial Catalog=',parameters('GliDBName'),';Persist Security Info=False;User ID=',parameters('AppDataContextPowerUserName'),';Password=',parameters('AppDataContextPowerPassword'),';MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;')]",
+    "DataContextPower": "[concat('Server=tcp:',parameters('GliSQLName'),'.database.windows.net,1433;Initial Catalog=',parameters('GliDBName'),';Persist Security Info=False;User ID=',parameters('DataContextPowerUserName'),';Password=',parameters('DataContextPowerPassword'),';MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;')]",
+    "ImportDataContextPower": "[concat('Server=tcp:',parameters('GliSQLName'),'.database.windows.net,1433;Initial Catalog=',parameters('GliDBName'),';Persist Security Info=False;User ID=',parameters('ImportDataContextPowerUserName'),';Password=',parameters('ImportDataContextPowerPassword'),';MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;')]",
+
+
+    "ClientZone:Api:Core:ApiCoreSettings:ApplicationRoute-API": "api",
+    "ClientZone:Api:Core:ApiCoreSettings:ApplicationRoute-JOBDATABASE": "database-kz",
+    "ClientZone:Api:Core:ApiCoreSettings:ApplicationRoute-API-INTERNAL": "internal",
+    "ClientZone:Api:Core:ApiCoreSettings:ApplicationRoute-API-GALLERY": "gallery",
+    "ClientZone:BusinessLogic:Security:SocialNetworkSettings:FacebookAppId": "326787934828180",
+    "ClientZone:BusinessLogic:Security:SocialNetworkSettings:FacebookSecret": "[parameters('ClientZone:BusinessLogic:Security:SocialNetworkSettings:FacebookSecret')]",
+    "ClientZone:BusinessLogic:Security:SocialNetworkSettings:GoogleClientId": "1087407089674-jj317kr7hfbj6ru2r647q2iakilouifv.apps.googleusercontent.com",
+    "ClientZone:CloudServices:FileStorage:StorageSettings:StorageConnectionString": "[concat('DefaultEndpointsProtocol=https;AccountName=',parameters('FileStoreName'),';AccountKey=',parameters('FileStorePassword'),';EndpointSuffix=core.windows.net')]",
+    "ClientZone:CloudServices:FileStorage:StorageSettings:TempStorageConnectionString": "[concat('DefaultEndpointsProtocol=https;AccountName=', parameters('FileStoreName'),';AccountKey=',parameters('FileStorePassword'),';EndpointSuffix=core.windows.net')]",
+    "ClientZone:CloudServices:FileStorage:StorageSettings:PublicStorageConnectionString": "[concat('DefaultEndpointsProtocol=https;AccountName=', parameters('FileStoreName'),';AccountKey=',parameters('FileStorePassword'),';EndpointSuffix=core.windows.net')]",
+    "ClientZone:Services:ImportData:ImportDataSettings:ImportDataConnectionString": "[concat('DefaultEndpointsProtocol=https;AccountName=',parameters('FileStoreName'),';AccountKey=',parameters('FileStorePassword'),';EndpointSuffix=core.windows.net')]",
+    "ClientZone:Common:Settings:AppCommonSettings:CompanyName": "Generali CEE Holding",
+    "ClientZone:Common:Settings:AppCommonSettings:FrontEndUrl": "https://moje.generali.cz",
+    "ClientZone:Common:Settings:AppCommonSettings:GalleryApiUrl": "https://moje.generali.cz/gallery",
+    "ClientZone:Core:SecuritySettings:AllowedCORS": "https://www.googleapis.com;https://moje.generali.cz;http://generali.cz;http://kg.zvladnu.cz;https://klubgenerali.cz",
+    "ClientZone:Core:SecuritySettings:AllowedCORS-API-INTERNALL": "https://www.googleapis.com;https://moje.generali.cz;http://generali.cz;http://kg.zvladnu.cz;https://klubgenerali.cz",
+    "ClientZone:Core:SecuritySettings:ClientZoneUserOperationWSPassword": "[parameters('ClientZone:Core:SecuritySettings:ClientZoneUserOperationWSPassword')]",
+    "ClientZone:Core:SecuritySettings:TokenECPointX": "[parameters('ClientZone:Core:SecuritySettings:TokenECPointX')]",
+    "ClientZone:Core:SecuritySettings:TokenECPointY": "[parameters('ClientZone:Core:SecuritySettings:TokenECPointY')]",
+    "ClientZone:Core:SecuritySettings:TokenSecurityKey": "[parameters('ClientZone:Core:SecuritySettings:TokenSecurityKey')]",
+    "ClientZone:Core:SecuritySettings:TokenValidAudiences": "G",
+    "ClientZone:Core:SecuritySettings:TokenValidIssuer": "moje.generali.cz/api-uni",
+    "ClientZone:Integration:CCD:CCDAdapterSettings:ClaimWSUrl": "https://alsbc.cpas.cz/ext/ccd/ClaimWS",
+    "ClientZone:Integration:CCD:CCDAdapterSettings:ClientZoneWSTechUser": "cpas\\ipcp_gez",
+    "ClientZone:Integration:CCD:CCDAdapterSettings:ClientZoneWSUrl": "https://alsbc.cpas.cz/ext/ccd/ClientZoneWS",
+    "ClientZone:Integration:CCD:CCDAdapterSettings:MdsWSUrl": "https://alsbc.cpas.cz/ext/mds/MdsWS",
+    "ClientZone:Integration:CCD:CCDAdapterSettings:PolicyWSUrl": "https://alsbc.cpas.cz/ext/ccd/PolicyWS",
+    "ClientZone:Integration:Core:AlsbSettings:Password": "[parameters('ClientZone:Integration:Core:AlsbSettings:Password')]",
+    "ClientZone:Integration:Core:AlsbSettings:Uid": "cpas\\ipcp_gez",
+    "ClientZone:Integration:Core:AlsbSettings:UserName": "ext_kz_ns",
+    "ClientZone:Integration:DA:DAAdapterSettings:DATechUser": "xxxws_gez",
+    "ClientZone:Integration:DA:DAAdapterSettings:Url": "https://alsbc.cpas.cz/ext/da/DaDocumentWS",
+    "ClientZone:Integration:DA:DAAdapterSettings:UrlImport": "https://alsbc.cpas.cz/ext/da/DaImportWS",
+    "ClientZone:Integration:DMO:DMOAdapterSettings:FromAddress": "noreply@generali.cz",
+    "ClientZone:Integration:DMO:DMOAdapterSettings:FromName": "Moje Generali",
+    "ClientZone:Integration:DMO:DMOAdapterSettings:Url": "https://alsbc.cpas.cz/ext/dmo/DeliveryWS",
+    "ClientZone:Integration:IAS:IASAdapterSettings:Url": "https://alsbc.cpas.cz/ext/wli_utils/IascWS",
+    "ClientZone:Integration:PMO:PMOAdapterSettings:Url": "https://alsbc.cpas.cz/ext/pmo/PaymentWS",
+    "ClientZone:Integration:TIA:TIAAdapterSettings:Url": "https://alsbc.cpas.cz/ext/inet/ClaimWS",
+    "ClientZoneEnvironment": "AzureDevelop",
+    "ClientZone:Integration:Core:AlsbSettings:CertificateThumbprint": "F386015BC0712B1F1CD70FC72CB8D957DF10C2FA",
+    "ClientZone:Core:SecuritySettings:ClientZoneUserOperationWSEndpointUrlLogin": "pk_user",
+    "ClientZone:Integration:Unizone:UnizoneAdapterSettings:UserName": "ipcp_gli_kz",
+    "ClientZone:Integration:Unizone:UnizoneAdapterSettings:Password": "[parameters('ClientZone:Integration:Unizone:UnizoneAdapterSettings:Password')]",
+    "ClientZone:Integration:Unizone:UnizoneAdapterSettings:UnizoneTokenUrl": "https://moje.generali.cz/api-uni/tokens"
+  },
+  "resources": [
+    {
+      "apiVersion": "2018-02-01",
+      "type": "Microsoft.Web/serverfarms",
+      "comments": "Service App plán.",
+      "location": "[variables('Location')]",
+      "name": "[variables('ServerFarmName')]",
+      "sku": {
+        "name": "[variables('AppServiceSKU').name]",
+        "tier": "[variables('AppServiceSKU').tier]",
+        "size": "[variables('AppServiceSKU').size]",
+        "family": "[variables('AppServiceSKU').family]",
+        "capacity": "[variables('AppServiceSKU').capacity]"
+      },
+      "dependsOn": []
+    },
+    {
+      "type": "Microsoft.Web/sites",
+      "apiVersion": "2018-02-01",
+      "comments": "JOBTIA",
+      "location": "[variables('Location')]",
+      "name": "[concat(variables('EnvironmentNamePrefix'),'-jobtia-',variables('EnvironmentType'))]",
+      "properties": {
+      },
+      "dependsOn": [
+        "[resourceId(resourceGroup().name,'Microsoft.Web/serverfarms',variables('ServerFarmName'))]"
+      ],
+      "resources": [
+        {
+          "name": "appsettings",
+          "type": "config",
+          "apiVersion": "2016-08-01",
+          "dependsOn": [
+            "[resourceId('Microsoft.Web/sites',concat(variables('EnvironmentNamePrefix'),'-jobtia-',variables('EnvironmentType')))]"
+          ],
+          "tags": {
+            "displayName": "Custom Settings"
+          },
+          "properties": {
+            "ClientZone:Integration:Core:AlsbSettings:Password": "[variables('ClientZone:Integration:Core:AlsbSettings:Password')]",
+            "ClientZone:Integration:Core:AlsbSettings:Uid": "[variables('ClientZone:Integration:Core:AlsbSettings:Uid')]",
+            "ClientZone:Integration:Core:AlsbSettings:UserName": "[variables('ClientZone:Integration:Core:AlsbSettings:UserName')]",
+            "ClientZone:Integration:IAS:IASAdapterSettings:Url": "[variables('ClientZone:Integration:IAS:IASAdapterSettings:Url')]",
+            "ClientZone:Integration:TIA:TIAAdapterSettings:Url": "[variables('ClientZone:Integration:TIA:TIAAdapterSettings:Url')]",
+            "ClientZoneEnvironment": "[variables('ClientZoneEnvironment')]",
+            "APPINSIGHTS_INSTRUMENTATIONKEY": "[reference(resourceId(variables('Unizone-RG'),'Microsoft.Insights/components', variables('InsightsComponentName')), '2018-05-01-preview').InstrumentationKey]",
+            "ClientZone:Integration:Core:AlsbSettings:CertificateThumbprint": "[variables('ClientZone:Integration:Core:AlsbSettings:CertificateThumbprint')]",
+            "WEBSITE_LOAD_CERTIFICATES": "[variables('ClientZone:Integration:Core:AlsbSettings:CertificateThumbprint')]"
+          }
+        },
+        {
+          "name": "connectionstrings",
+          "type": "config",
+          "apiVersion": "2016-08-01",
+          "dependsOn": [
+            "[resourceId('Microsoft.Web/sites',concat(variables('EnvironmentNamePrefix'),'-jobtia-',variables('EnvironmentType')))]"
+          ],
+          "tags": {
+            "displayName": "ConnectionString"
+          },
+          "properties": {
+            "AppDataContext": {
+              "value": "[variables('AppDataContextApp')]",
+              "type": "SQLAzure"
+            },
+            "DataContext": {
+              "value": "[variables('DataContextApp')]",
+              "type": "SQLAzure"
+            },
+            "ServiceBus": {
+              "value": "[variables('ServiceBusEndpoint')]",
+              "type": "Custom"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "type": "Microsoft.Web/sites",
+      "apiVersion": "2018-02-01",
+      "comments": "jobnotificationgenerator",
+      "location": "[variables('Location')]",
+      "name": "[concat(variables('EnvironmentNamePrefix'),'-jobnotificationgenerator-',variables('EnvironmentType'))]",
+      "properties": {
+      },
+      "dependsOn": [
+        "[resourceId(resourceGroup().name,'Microsoft.Web/serverfarms',variables('ServerFarmName'))]"
+      ],
+      "resources": [
+        {
+          "name": "appsettings",
+          "type": "config",
+          "apiVersion": "2016-08-01",
+          "dependsOn": [
+            "[resourceId('Microsoft.Web/sites',concat(variables('EnvironmentNamePrefix'),'-jobnotificationgenerator-',variables('EnvironmentType')))]"
+          ],
+          "tags": {
+            "displayName": "Custom Settings"
+          },
+          "properties": {
+            "ClientZoneEnvironment": "[variables('ClientZoneEnvironment')]",
+            "APPINSIGHTS_INSTRUMENTATIONKEY": "[reference(resourceId(variables('Unizone-RG'),'Microsoft.Insights/components', variables('InsightsComponentName')), '2018-05-01-preview').InstrumentationKey]"
+          }
+        },
+        {
+          "name": "connectionstrings",
+          "type": "config",
+          "apiVersion": "2016-08-01",
+          "dependsOn": [
+            "[resourceId('Microsoft.Web/sites',concat(variables('EnvironmentNamePrefix'),'-jobnotificationgenerator-',variables('EnvironmentType')))]"
+          ],
+          "tags": {
+            "displayName": "ConnectionString"
+          },
+          "properties": {
+            "AppDataContext": {
+              "value": "[variables('AppDataContextApp')]",
+              "type": "SQLAzure"
+            },
+            "DataContext": {
+              "value": "[variables('DataContextApp')]",
+              "type": "SQLAzure"
+            },
+            "ServiceBus": {
+              "value": "[variables('ServiceBusEndpoint')]",
+              "type": "Custom"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "type": "Microsoft.Web/sites",
+      "apiVersion": "2018-02-01",
+      "comments": "jobimportdata",
+    
+      "location": "[variables('Location')]",
+      "name": "[concat(variables('EnvironmentNamePrefix'),'-jobimportdata-',variables('EnvironmentType'))]",
+      "properties": {
+      },
+      "dependsOn": [
+        "[resourceId(resourceGroup().name,'Microsoft.Web/serverfarms',variables('ServerFarmName'))]"
+      ],
+      "resources": [
+        {
+          "name": "appsettings",
+          "type": "config",
+          "apiVersion": "2016-08-01",
+          "dependsOn": [
+            "[resourceId('Microsoft.Web/sites',concat(variables('EnvironmentNamePrefix'),'-jobimportdata-',variables('EnvironmentType')))]"
+          ],
+          "tags": {
+            "displayName": "Custom Settings"
+          },
+          "properties": {
+            "ClientZoneEnvironment": "[variables('ClientZoneEnvironment')]",
+            "ClientZone:Services:ImportData:ImportDataSettings:ImportDataConnectionString": "[variables('ClientZone:Services:ImportData:ImportDataSettings:ImportDataConnectionString')]",
+            "APPINSIGHTS_INSTRUMENTATIONKEY": "[reference(resourceId(variables('Unizone-RG'),'Microsoft.Insights/components', variables('InsightsComponentName')), '2018-05-01-preview').InstrumentationKey]"
+          }
+        },
+        {
+          "name": "connectionstrings",
+          "type": "config",
+          "apiVersion": "2016-08-01",
+          "dependsOn": [
+            "[resourceId('Microsoft.Web/sites',concat(variables('EnvironmentNamePrefix'),'-jobimportdata-',variables('EnvironmentType')))]"
+          ],
+          "tags": {
+            "displayName": "ConnectionString"
+          },
+          "properties": {
+            "AppDataContext": {
+              "value": "[variables('AppDataContextPower')]",
+              "type": "SQLAzure"
+            },
+            "DataContext": {
+              "value": "[variables('DataContextPower')]",
+              "type": "SQLAzure"
+            },
+            "ImportDataContext": {
+              "value": "[variables('ImportDataContextPower')]",
+              "type": "SQLAzure"
+            },
+            "ServiceBus": {
+              "value": "[variables('ServiceBusEndpoint')]",
+              "type": "Custom"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "type": "Microsoft.Web/sites",
+      "apiVersion": "2018-02-01",
+      "comments": "jobimageprocessor",
+      "location": "[variables('Location')]",
+      "name": "[concat(variables('EnvironmentNamePrefix'),'-jobimageprocessor-',variables('EnvironmentType'))]",
+      "properties": {
+      },
+      "dependsOn": [
+        "[resourceId(resourceGroup().name,'Microsoft.Web/serverfarms',variables('ServerFarmName'))]"
+      ],
+      "resources": [
+        {
+          "name": "appsettings",
+          "type": "config",
+          "apiVersion": "2016-08-01",
+          "dependsOn": [
+            "[resourceId('Microsoft.Web/sites',concat(variables('EnvironmentNamePrefix'),'-jobimageprocessor-',variables('EnvironmentType')))]"
+          ],
+          "tags": {
+            "displayName": "Custom Settings"
+          },
+          "properties": {
+            "ClientZoneEnvironment": "[variables('ClientZoneEnvironment')]",
+            "ClientZone:CloudServices:FileStorage:StorageSettings:TempStorageConnectionString": "[variables('ClientZone:CloudServices:FileStorage:StorageSettings:TempStorageConnectionString')]",
+            "ClientZone:CloudServices:FileStorage:StorageSettings:StorageConnectionString": "[variables('ClientZone:CloudServices:FileStorage:StorageSettings:StorageConnectionString')]",
+            "APPINSIGHTS_INSTRUMENTATIONKEY": "[reference(resourceId(variables('Unizone-RG'),'Microsoft.Insights/components', variables('InsightsComponentName')), '2018-05-01-preview').InstrumentationKey]"
+          }
+        },
+        {
+          "name": "connectionstrings",
+          "type": "config",
+          "apiVersion": "2016-08-01",
+          "dependsOn": [
+            "[resourceId('Microsoft.Web/sites',concat(variables('EnvironmentNamePrefix'),'-jobimageprocessor-',variables('EnvironmentType')))]"
+          ],
+          "tags": {
+            "displayName": "ConnectionString"
+          },
+          "properties": {
+            "AppDataContext": {
+              "value": "[variables('AppDataContextApp')]",
+              "type": "SQLAzure"
+            },
+            "DataContext": {
+              "value": "[variables('DataContextApp')]",
+              "type": "SQLAzure"
+            },
+            "ServiceBus": {
+              "value": "[variables('ServiceBusEndpoint')]",
+              "type": "Custom"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "type": "Microsoft.Web/sites",
+      "apiVersion": "2018-02-01",
+      "comments": "jobdmo",
+      "location": "[variables('Location')]",
+      "name": "[concat(variables('EnvironmentNamePrefix'),'-jobdmo-',variables('EnvironmentType'))]",
+      "properties": {
+      },
+      "dependsOn": [
+        "[resourceId(resourceGroup().name,'Microsoft.Web/serverfarms',variables('ServerFarmName'))]"
+      ],
+      "resources": [
+        {
+          "name": "appsettings",
+          "type": "config",
+          "apiVersion": "2016-08-01",
+          "dependsOn": [
+            "[resourceId('Microsoft.Web/sites',concat(variables('EnvironmentNamePrefix'),'-jobdmo-',variables('EnvironmentType')))]"
+          ],
+          "tags": {
+            "displayName": "Custom Settings"
+          },
+          "properties": {
+            "ClientZone:Integration:Core:AlsbSettings:Password": "[variables('ClientZone:Integration:Core:AlsbSettings:Password')]",
+            "ClientZone:Integration:Core:AlsbSettings:Uid": "[variables('ClientZone:Integration:Core:AlsbSettings:Uid')]",
+            "ClientZone:Integration:Core:AlsbSettings:UserName": "[variables('ClientZone:Integration:Core:AlsbSettings:UserName')]",
+            "ClientZone:Integration:DMO:DMOAdapterSettings:FromAddress": "[variables('ClientZone:Integration:DMO:DMOAdapterSettings:FromAddress')]",
+            "ClientZone:Integration:DMO:DMOAdapterSettings:FromName": "[variables('ClientZone:Integration:DMO:DMOAdapterSettings:FromName')]",
+            "ClientZone:Integration:DMO:DMOAdapterSettings:Url": "[variables('ClientZone:Integration:DMO:DMOAdapterSettings:Url')]",
+            "ClientZoneEnvironment": "[variables('ClientZoneEnvironment')]",
+            "APPINSIGHTS_INSTRUMENTATIONKEY": "[reference(resourceId(variables('Unizone-RG'),'Microsoft.Insights/components', variables('InsightsComponentName')), '2018-05-01-preview').InstrumentationKey]",
+            "ClientZone:Integration:Core:AlsbSettings:CertificateThumbprint": "[variables('ClientZone:Integration:Core:AlsbSettings:CertificateThumbprint')]",
+            "WEBSITE_LOAD_CERTIFICATES": "[variables('ClientZone:Integration:Core:AlsbSettings:CertificateThumbprint')]"
+          }
+        },
+        {
+          "name": "connectionstrings",
+          "type": "config",
+          "apiVersion": "2016-08-01",
+          "dependsOn": [
+            "[resourceId('Microsoft.Web/sites',concat(variables('EnvironmentNamePrefix'),'-jobdmo-',variables('EnvironmentType')))]"
+          ],
+          "tags": {
+            "displayName": "ConnectionString"
+          },
+          "properties": {
+            "AppDataContext": {
+              "value": "[variables('AppDataContextApp')]",
+              "type": "SQLAzure"
+            },
+            "DataContext": {
+              "value": "[variables('DataContextApp')]",
+              "type": "SQLAzure"
+            },
+            "ServiceBus": {
+              "value": "[variables('ServiceBusEndpoint')]",
+              "type": "Custom"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "type": "Microsoft.Web/sites",
+      "apiVersion": "2018-02-01",
+      "comments": "jobdatabase",
+      "location": "[variables('Location')]",
+      "name": "[concat(variables('EnvironmentNamePrefix'),'-jobdatabase-',variables('EnvironmentType'))]",
+      "properties": {
+      },
+      "dependsOn": [
+        "[resourceId(resourceGroup().name,'Microsoft.Web/serverfarms',variables('ServerFarmName'))]"
+      ],
+      "resources": [
+        {
+          "name": "appsettings",
+          "type": "config",
+          "apiVersion": "2016-08-01",
+          "dependsOn": [
+            "[resourceId('Microsoft.Web/sites',concat(variables('EnvironmentNamePrefix'),'-jobdatabase-',variables('EnvironmentType')))]"
+          ],
+          "tags": {
+            "displayName": "Custom Settings"
+          },
+          "properties": {
+            "ClientZoneEnvironment": "[variables('ClientZoneEnvironment')]",
+            "ClientZone:Api:Core:ApiCoreSettings:ApplicationRoute": "[variables('ClientZone:Api:Core:ApiCoreSettings:ApplicationRoute-JOBDATABASE')]",
+            "APPINSIGHTS_INSTRUMENTATIONKEY": "[reference(resourceId(variables('Unizone-RG'),'Microsoft.Insights/components', variables('InsightsComponentName')), '2018-05-01-preview').InstrumentationKey]"
+          }
+        },
+        {
+          "name": "connectionstrings",
+          "type": "config",
+          "apiVersion": "2016-08-01",
+          "dependsOn": [
+            "[resourceId('Microsoft.Web/sites',concat(variables('EnvironmentNamePrefix'),'-jobdatabase-',variables('EnvironmentType')))]"
+          ],
+          "tags": {
+            "displayName": "ConnectionString"
+          },
+          "properties": {
+            "AppDataContext": {
+              "value": "[variables('AppDataContextPower')]",
+              "type": "SQLAzure"
+            },
+            "DataContext": {
+              "value": "[variables('DataContextPower')]",
+              "type": "SQLAzure"
+            },
+            "ImportDataContext": {
+              "value": "[variables('ImportDataContextPower')]",
+              "type": "SQLAzure"
+            },
+            "ServiceBus": {
+              "value": "[variables('ServiceBusEndpoint')]",
+              "type": "Custom"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "type": "Microsoft.Web/sites",
+      "apiVersion": "2018-02-01",
+      "comments": "jobda",
+      
+      "location": "[variables('Location')]",
+      "name": "[concat(variables('EnvironmentNamePrefix'),'-jobda-',variables('EnvironmentType'))]",
+      "properties": {
+      },
+      "dependsOn": [
+        "[resourceId(resourceGroup().name,'Microsoft.Web/serverfarms',variables('ServerFarmName'))]"
+      ],
+      "resources": [
+        {
+          "name": "appsettings",
+          "type": "config",
+          "apiVersion": "2016-08-01",
+          "dependsOn": [
+            "[resourceId('Microsoft.Web/sites',concat(variables('EnvironmentNamePrefix'),'-jobda-',variables('EnvironmentType')))]"
+          ],
+          "tags": {
+            "displayName": "Custom Settings"
+          },
+          "properties": {
+            "ClientZone:Integration:Core:AlsbSettings:Password": "[variables('ClientZone:Integration:Core:AlsbSettings:Password')]",
+            "ClientZone:Integration:Core:AlsbSettings:Uid": "[variables('ClientZone:Integration:Core:AlsbSettings:Uid')]",
+            "ClientZone:Integration:Core:AlsbSettings:UserName": "[variables('ClientZone:Integration:Core:AlsbSettings:UserName')]",
+            "ClientZone:Integration:DA:DAAdapterSettings:DATechUser": "[variables('ClientZone:Integration:DA:DAAdapterSettings:DATechUser')]",
+            "ClientZone:Integration:DA:DAAdapterSettings:Url": "[variables('ClientZone:Integration:DA:DAAdapterSettings:Url')]",
+            "ClientZone:Integration:DA:DAAdapterSettings:UrlImport": "[variables('ClientZone:Integration:DA:DAAdapterSettings:UrlImport')]",
+            "APPINSIGHTS_INSTRUMENTATIONKEY": "[reference(resourceId(variables('Unizone-RG'),'Microsoft.Insights/components', variables('InsightsComponentName')), '2018-05-01-preview').InstrumentationKey]",
+            "ClientZoneEnvironment": "[variables('ClientZoneEnvironment')]",
+            "ClientZone:CloudServices:FileStorage:StorageSettings:TempStorageConnectionString": "[variables('ClientZone:CloudServices:FileStorage:StorageSettings:TempStorageConnectionString')]",
+            "ClientZone:CloudServices:FileStorage:StorageSettings:StorageConnectionString": "[variables('ClientZone:CloudServices:FileStorage:StorageSettings:StorageConnectionString')]",
+            "ClientZone:Integration:Core:AlsbSettings:CertificateThumbprint": "[variables('ClientZone:Integration:Core:AlsbSettings:CertificateThumbprint')]",
+            "WEBSITE_LOAD_CERTIFICATES": "[variables('ClientZone:Integration:Core:AlsbSettings:CertificateThumbprint')]"
+          }
+        },
+        {
+          "name": "connectionstrings",
+          "type": "config",
+          "apiVersion": "2016-08-01",
+          "dependsOn": [
+            "[resourceId('Microsoft.Web/sites',concat(variables('EnvironmentNamePrefix'),'-jobda-',variables('EnvironmentType')))]"
+          ],
+          "tags": {
+            "displayName": "ConnectionString"
+          },
+          "properties": {
+            "AppDataContext": {
+              "value": "[variables('AppDataContextApp')]",
+              "type": "SQLAzure"
+            },
+            "DataContext": {
+              "value": "[variables('DataContextApp')]",
+              "type": "SQLAzure"
+            },
+            "ServiceBus": {
+              "value": "[variables('ServiceBusEndpoint')]",
+              "type": "Custom"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "type": "Microsoft.Web/sites",
+      "apiVersion": "2018-02-01",
+      "comments": "jobccd",
+      "location": "[variables('Location')]",
+      "name": "[concat(variables('EnvironmentNamePrefix'),'-jobccd-',variables('EnvironmentType'))]",
+      "properties": {
+      },
+      "dependsOn": [
+        "[resourceId(resourceGroup().name,'Microsoft.Web/serverfarms',variables('ServerFarmName'))]"
+      ],
+      "resources": [
+        {
+          "name": "appsettings",
+          "type": "config",
+          "apiVersion": "2016-08-01",
+          "dependsOn": [
+            "[resourceId('Microsoft.Web/sites',concat(variables('EnvironmentNamePrefix'),'-jobccd-',variables('EnvironmentType')))]"
+          ],
+          "tags": {
+            "displayName": "Custom Settings"
+          },
+          "properties": {
+            "ClientZone:Integration:CCD:CCDAdapterSettings:ClaimWSUrl": "[variables('ClientZone:Integration:CCD:CCDAdapterSettings:ClaimWSUrl')]",
+            "ClientZone:Integration:CCD:CCDAdapterSettings:ClientZoneWSTechUser": "[variables('ClientZone:Integration:CCD:CCDAdapterSettings:ClientZoneWSTechUser')]",
+            "ClientZone:Integration:CCD:CCDAdapterSettings:ClientZoneWSUrl": "[variables('ClientZone:Integration:CCD:CCDAdapterSettings:ClientZoneWSUrl')]",
+            "ClientZone:Integration:CCD:CCDAdapterSettings:MdsWSUrl": "[variables('ClientZone:Integration:CCD:CCDAdapterSettings:MdsWSUrl')]",
+            "ClientZone:Integration:CCD:CCDAdapterSettings:PolicyWSUrl": "[variables('ClientZone:Integration:CCD:CCDAdapterSettings:PolicyWSUrl')]",
+            "ClientZone:Integration:Core:AlsbSettings:Password": "[variables('ClientZone:Integration:Core:AlsbSettings:Password')]",
+            "ClientZone:Integration:Core:AlsbSettings:Uid": "[variables('ClientZone:Integration:Core:AlsbSettings:Uid')]",
+            "ClientZone:Integration:Core:AlsbSettings:UserName": "[variables('ClientZone:Integration:Core:AlsbSettings:UserName')]",
+            "ClientZoneEnvironment": "[variables('ClientZoneEnvironment')]",
+            "APPINSIGHTS_INSTRUMENTATIONKEY": "[reference(resourceId(variables('Unizone-RG'),'Microsoft.Insights/components', variables('InsightsComponentName')), '2018-05-01-preview').InstrumentationKey]",
+            "ClientZone:Integration:Core:AlsbSettings:CertificateThumbprint": "[variables('ClientZone:Integration:Core:AlsbSettings:CertificateThumbprint')]",
+            "WEBSITE_LOAD_CERTIFICATES": "[variables('ClientZone:Integration:Core:AlsbSettings:CertificateThumbprint')]"
+          }
+        },
+        {
+          "name": "connectionstrings",
+          "type": "config",
+          "apiVersion": "2016-08-01",
+          "dependsOn": [
+            "[resourceId('Microsoft.Web/sites',concat(variables('EnvironmentNamePrefix'),'-jobccd-',variables('EnvironmentType')))]"
+          ],
+          "tags": {
+            "displayName": "ConnectionString"
+          },
+          "properties": {
+            "AppDataContext": {
+              "value": "[variables('AppDataContextApp')]",
+              "type": "SQLAzure"
+            },
+            "DataContext": {
+              "value": "[variables('DataContextApp')]",
+              "type": "SQLAzure"
+            },
+            "ServiceBus": {
+              "value": "[variables('ServiceBusEndpoint')]",
+              "type": "Custom"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "type": "Microsoft.Web/sites",
+      "apiVersion": "2018-02-01",
+      "comments": "api-internal",
+      "location": "[variables('Location')]",
+      "name": "[concat(variables('EnvironmentNamePrefix'),'-api-internal-',variables('EnvironmentType'))]",
+      "properties": {
+      },
+      "dependsOn": [
+        "[resourceId(resourceGroup().name,'Microsoft.Web/serverfarms',variables('ServerFarmName'))]"
+      ],
+      "resources": [
+        {
+          "name": "appsettings",
+          "type": "config",
+          "apiVersion": "2016-08-01",
+          "dependsOn": [
+            "[resourceId('Microsoft.Web/sites',concat(variables('EnvironmentNamePrefix'),'-api-internal-',variables('EnvironmentType')))]"
+          ],
+          "tags": {
+            "displayName": "Custom Settings"
+          },
+          "properties": {
+            "ClientZone:Api:Core:ApiCoreSettings:ApplicationRoute": "[variables('ClientZone:Api:Core:ApiCoreSettings:ApplicationRoute-API-INTERNAL')]",
+            "ClientZone:BusinessLogic:Notifications:NotificationSettings:DefaultEmailAddressForPolicyAdmins": "[variables('ClientZone:Integration:DMO:DMOAdapterSettings:FromAddress')]",
+            "ClientZone:CloudServices:FileStorage:StorageSettings:StorageConnectionString": "[variables('ClientZone:CloudServices:FileStorage:StorageSettings:StorageConnectionString')]",
+            "ClientZone:CloudServices:FileStorage:StorageSettings:TempStorageConnectionString": "[variables('ClientZone:CloudServices:FileStorage:StorageSettings:TempStorageConnectionString')]",
+            "ClientZone:Common:Settings:AppCommonSettings:FrontEndUrl": "[variables('ClientZone:Common:Settings:AppCommonSettings:FrontEndUrl')]",
+            "ClientZone:Common:Settings:AppCommonSettings:GalleryApiUrl": "[variables('ClientZone:Common:Settings:AppCommonSettings:GalleryApiUrl')]",
+            "ClientZone:Core:SecuritySettings:AllowedCORS": "[variables('ClientZone:Core:SecuritySettings:AllowedCORS')]",
+            "ClientZone:Core:SecuritySettings:ClientZoneUserOperationWSPassword": "[variables('ClientZone:Core:SecuritySettings:ClientZoneUserOperationWSPassword')]",
+            "ClientZone:Core:SecuritySettings:TokenECPointX": "[variables('ClientZone:Core:SecuritySettings:TokenECPointX')]",
+            "ClientZone:Core:SecuritySettings:TokenECPointY": "[variables('ClientZone:Core:SecuritySettings:TokenECPointY')]",
+            "ClientZone:Core:SecuritySettings:TokenSecurityKey": "[variables('ClientZone:Core:SecuritySettings:TokenSecurityKey')]",
+            "ClientZone:Core:SecuritySettings:TokenValidAudiences": "[variables('ClientZone:Core:SecuritySettings:TokenValidAudiences')]",
+            "ClientZone:Core:SecuritySettings:TokenValidIssuer": "[variables('ClientZone:Core:SecuritySettings:TokenValidIssuer')]",
+            "ClientZone:Core:SecuritySettings:ClientZoneUserOperationWSEndpointUrlLogin": "[variables('ClientZone:Core:SecuritySettings:ClientZoneUserOperationWSEndpointUrlLogin')]",
+            "ClientZone:Integration:CCD:CCDAdapterSettings:MdsWSUrl": "[variables('ClientZone:Integration:CCD:CCDAdapterSettings:MdsWSUrl')]",
+            "ClientZone:Integration:CCD:CCDAdapterSettings:PolicyWSUrl": "[variables('ClientZone:Integration:CCD:CCDAdapterSettings:PolicyWSUrl')]",
+            "ClientZone:Integration:CCD:CCDAdapterSettings:ClaimWSUrl": "[variables('ClientZone:Integration:CCD:CCDAdapterSettings:ClaimWSUrl')]",
+            "ClientZone:Integration:CCD:CCDAdapterSettings:ClientZoneWSUrl": "[variables('ClientZone:Integration:CCD:CCDAdapterSettings:ClientZoneWSUrl')]",
+            "ClientZone:Integration:Core:AlsbSettings:Password": "[variables('ClientZone:Integration:Core:AlsbSettings:Password')]",
+            "ClientZone:Integration:Core:AlsbSettings:UserName": "[variables('ClientZone:Integration:Core:AlsbSettings:UserName')]",
+            "ClientZone:Integration:Core:AlsbSettings:Uid": "[variables('ClientZone:Integration:Core:AlsbSettings:Uid')]",
+            "ClientZone:Integration:Core:AlsbSettings:CertificateThumbprint": "[variables('ClientZone:Integration:Core:AlsbSettings:CertificateThumbprint')]",
+            "WEBSITE_LOAD_CERTIFICATES": "[variables('ClientZone:Integration:Core:AlsbSettings:CertificateThumbprint')]",
+            "APPINSIGHTS_INSTRUMENTATIONKEY": "[reference(resourceId(variables('Unizone-RG'),'Microsoft.Insights/components', variables('InsightsComponentName')), '2018-05-01-preview').InstrumentationKey]"
+          }
+        },
+        {
+          "name": "connectionstrings",
+          "type": "config",
+          "apiVersion": "2016-08-01",
+          "dependsOn": [
+            "[resourceId('Microsoft.Web/sites',concat(variables('EnvironmentNamePrefix'),'-api-internal-',variables('EnvironmentType')))]"
+          ],
+          "tags": {
+            "displayName": "ConnectionString"
+          },
+          "properties": {
+            "AppDataContext": {
+              "value": "[variables('AppDataContextApp')]",
+              "type": "SQLAzure"
+            },
+            "DataContext": {
+              "value": "[variables('DataContextApp')]",
+              "type": "SQLAzure"
+            },
+            "ServiceBus": {
+              "value": "[variables('ServiceBusEndpoint')]",
+              "type": "Custom"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "type": "Microsoft.Web/sites",
+      "apiVersion": "2018-02-01",
+      "comments": "api-gallery",
+      "location": "[variables('Location')]",
+      "name": "[concat(variables('EnvironmentNamePrefix'),'-api-gallery-',variables('EnvironmentType'))]",
+      "properties": {
+      },
+      "dependsOn": [
+        "[resourceId(resourceGroup().name,'Microsoft.Web/serverfarms',variables('ServerFarmName'))]"
+      ],
+      "resources": [
+        {
+          "name": "appsettings",
+          "type": "config",
+          "apiVersion": "2016-08-01",
+          "dependsOn": [
+            "[resourceId('Microsoft.Web/sites',concat(variables('EnvironmentNamePrefix'),'-api-gallery-',variables('EnvironmentType')))]"
+          ],
+          "tags": {
+            "displayName": "Custom Settings"
+          },
+          "properties": {
+            "ClientZone:Api:Core:ApiCoreSettings:ApplicationRoute": "[variables('ClientZone:Api:Core:ApiCoreSettings:ApplicationRoute-API-GALLERY')]",
+            "ClientZone:BusinessLogic:Notifications:NotificationSettings:DefaultEmailAddressForPolicyAdmins": "[variables('ClientZone:Integration:DMO:DMOAdapterSettings:FromAddress')]",
+            "ClientZone:BusinessLogic:Security:SocialNetworkSettings:FacebookAppId": "[variables('ClientZone:BusinessLogic:Security:SocialNetworkSettings:FacebookAppId')]",
+            "ClientZone:BusinessLogic:Security:SocialNetworkSettings:FacebookSecret": "[variables('ClientZone:BusinessLogic:Security:SocialNetworkSettings:FacebookSecret')]",
+            "ClientZone:BusinessLogic:Security:SocialNetworkSettings:GoogleClientId": "[variables('ClientZone:BusinessLogic:Security:SocialNetworkSettings:GoogleClientId')]",
+            "ClientZone:CloudServices:FileStorage:StorageSettings:StorageConnectionString": "[variables('ClientZone:CloudServices:FileStorage:StorageSettings:StorageConnectionString')]",
+            "ClientZone:CloudServices:FileStorage:StorageSettings:TempStorageConnectionString": "[variables('ClientZone:CloudServices:FileStorage:StorageSettings:TempStorageConnectionString')]",
+            "ClientZone:Common:Settings:AppCommonSettings:FrontEndUrl": "[variables('ClientZone:Common:Settings:AppCommonSettings:FrontEndUrl')]",
+            "ClientZone:Common:Settings:AppCommonSettings:GalleryApiUrl": "[variables('ClientZone:Common:Settings:AppCommonSettings:GalleryApiUrl')]",
+            "ClientZone:Core:SecuritySettings:AllowedCORS": "[variables('ClientZone:Core:SecuritySettings:AllowedCORS')]",
+            "ClientZone:Core:SecuritySettings:ClientZoneUserOperationWSPassword": "[variables('ClientZone:Core:SecuritySettings:ClientZoneUserOperationWSPassword')]",
+            "ClientZone:Core:SecuritySettings:TokenECPointX": "[variables('ClientZone:Core:SecuritySettings:TokenECPointX')]",
+            "ClientZone:Core:SecuritySettings:TokenECPointY": "[variables('ClientZone:Core:SecuritySettings:TokenECPointY')]",
+            "ClientZone:Core:SecuritySettings:TokenSecurityKey": "[variables('ClientZone:Core:SecuritySettings:TokenSecurityKey')]",
+            "ClientZone:Core:SecuritySettings:TokenValidAudiences": "[variables('ClientZone:Core:SecuritySettings:TokenValidAudiences')]",
+            "ClientZone:Core:SecuritySettings:TokenValidIssuer": "[variables('ClientZone:Core:SecuritySettings:TokenValidIssuer')]",
+            "ClientZoneEnvironment": "[variables('ClientZoneEnvironment')]",
+            "APPINSIGHTS_INSTRUMENTATIONKEY": "[reference(resourceId(variables('Unizone-RG'),'Microsoft.Insights/components', variables('InsightsComponentName')), '2018-05-01-preview').InstrumentationKey]"
+          }
+        },
+        {
+          "name": "connectionstrings",
+          "type": "config",
+          "apiVersion": "2016-08-01",
+          "dependsOn": [
+            "[resourceId('Microsoft.Web/sites',concat(variables('EnvironmentNamePrefix'),'-api-gallery-',variables('EnvironmentType')))]"
+          ],
+          "tags": {
+            "displayName": "ConnectionString"
+          },
+          "properties": {
+            "AppDataContext": {
+              "value": "[variables('AppDataContextApp')]",
+              "type": "SQLAzure"
+            },
+            "DataContext": {
+              "value": "[variables('DataContextApp')]",
+              "type": "SQLAzure"
+            },
+            "ServiceBus": {
+              "value": "[variables('ServiceBusEndpoint')]",
+              "type": "Custom"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "type": "Microsoft.Web/sites",
+      "apiVersion": "2018-02-01",
+      "comments": "api",
+      "location": "[variables('Location')]",
+      "name": "[concat(variables('EnvironmentNamePrefix'),'-api-',variables('EnvironmentType'))]",
+      "properties": {
+      },
+      "dependsOn": [
+        "[resourceId(resourceGroup().name,'Microsoft.Web/serverfarms',variables('ServerFarmName'))]"
+      ],
+      "resources": [
+        {
+          "name": "appsettings",
+          "type": "config",
+          "apiVersion": "2016-08-01",
+          "dependsOn": [
+            "[resourceId('Microsoft.Web/sites',concat(variables('EnvironmentNamePrefix'),'-api-',variables('EnvironmentType')))]"
+          ],
+          "tags": {
+            "displayName": "Custom Settings"
+          },
+          "properties": {
+            "ClientZone:Api:Core:ApiCoreSettings:ApplicationRoute": "[variables('ClientZone:Api:Core:ApiCoreSettings:ApplicationRoute-API')]",
+            "ClientZone:BusinessLogic:Notifications:NotificationSettings:DefaultEmailAddressForPolicyAdmins": "[variables('ClientZone:Integration:DMO:DMOAdapterSettings:FromAddress')]",
+            "ClientZone:BusinessLogic:Security:SocialNetworkSettings:FacebookAppId": "[variables('ClientZone:BusinessLogic:Security:SocialNetworkSettings:FacebookAppId')]",
+            "ClientZone:BusinessLogic:Security:SocialNetworkSettings:FacebookSecret": "[variables('ClientZone:BusinessLogic:Security:SocialNetworkSettings:FacebookSecret')]",
+            "ClientZone:BusinessLogic:Security:SocialNetworkSettings:GoogleClientId": "[variables('ClientZone:BusinessLogic:Security:SocialNetworkSettings:GoogleClientId')]",
+            "ClientZone:CloudServices:FileStorage:StorageSettings:StorageConnectionString": "[variables('ClientZone:CloudServices:FileStorage:StorageSettings:StorageConnectionString')]",
+            "ClientZone:CloudServices:FileStorage:StorageSettings:TempStorageConnectionString": "[variables('ClientZone:CloudServices:FileStorage:StorageSettings:TempStorageConnectionString')]",
+            "ClientZone:Common:Settings:AppCommonSettings:CompanyName": "[variables('ClientZone:Common:Settings:AppCommonSettings:CompanyName')]",
+            "ClientZone:Common:Settings:AppCommonSettings:FrontEndUrl": "[variables('ClientZone:Common:Settings:AppCommonSettings:FrontEndUrl')]",
+            "ClientZone:Common:Settings:AppCommonSettings:GalleryApiUrl": "[variables('ClientZone:Common:Settings:AppCommonSettings:GalleryApiUrl')]",
+            "ClientZone:Core:SecuritySettings:AllowedCORS": "[variables('ClientZone:Core:SecuritySettings:AllowedCORS')]",
+            "ClientZone:Core:SecuritySettings:ClientZoneUserOperationWSPassword": "[variables('ClientZone:Core:SecuritySettings:ClientZoneUserOperationWSPassword')]",
+            "ClientZone:Core:SecuritySettings:TokenECPointX": "[variables('ClientZone:Core:SecuritySettings:TokenECPointX')]",
+            "ClientZone:Core:SecuritySettings:TokenECPointY": "[variables('ClientZone:Core:SecuritySettings:TokenECPointY')]",
+            "ClientZone:Core:SecuritySettings:TokenSecurityKey": "[variables('ClientZone:Core:SecuritySettings:TokenSecurityKey')]",
+            "ClientZone:Core:SecuritySettings:TokenValidAudiences": "[variables('ClientZone:Core:SecuritySettings:TokenValidAudiences')]",
+            "ClientZone:Core:SecuritySettings:TokenValidIssuer": "[variables('ClientZone:Core:SecuritySettings:TokenValidIssuer')]",
+            "ClientZone:Integration:CCD:CCDAdapterSettings:MdsWSUrl": "[variables('ClientZone:Integration:CCD:CCDAdapterSettings:MdsWSUrl')]",
+            "ClientZone:Integration:Core:AlsbSettings:Password": "[variables('ClientZone:Integration:Core:AlsbSettings:Password')]",
+            "ClientZone:Integration:Core:AlsbSettings:UserName": "[variables('ClientZone:Integration:Core:AlsbSettings:UserName')]",
+            "ClientZone:Integration:DA:DAAdapterSettings:Url": "[variables('ClientZone:Integration:DA:DAAdapterSettings:Url')]",
+            "ClientZone:Integration:PMO:PMOAdapterSettings:Url": "[variables('ClientZone:Integration:PMO:PMOAdapterSettings:Url')]",
+            "ClientZone:Integration:TIA:TIAAdapterSettings:Url": "[variables('ClientZone:Integration:TIA:TIAAdapterSettings:Url')]",
+            "ClientZone:Integration:IAS:IASAdapterSettings:Url": "[variables('ClientZone:Integration:IAS:IASAdapterSettings:Url')]",
+            "ClientZone:Integration:DA:DAAdapterSettings:UrlImport": "[variables('ClientZone:Integration:DA:DAAdapterSettings:UrlImport')]",
+            "ClientZone:Integration:CCD:CCDAdapterSettings:ClientZoneWSUrl": "[variables('ClientZone:Integration:CCD:CCDAdapterSettings:ClientZoneWSUrl')]",
+            "ClientZone:Integration:CCD:CCDAdapterSettings:PolicyWSUrl": "[variables('ClientZone:Integration:CCD:CCDAdapterSettings:PolicyWSUrl')]",
+            "ClientZone:Integration:CCD:CCDAdapterSettings:ClaimWSUrl": "[variables('ClientZone:Integration:CCD:CCDAdapterSettings:ClaimWSUrl')]",
+            "ClientZone:Integration:Unizone:UnizoneAdapterSettings:UserName": "[variables('ClientZone:Integration:Unizone:UnizoneAdapterSettings:UserName')]",
+            "ClientZone:Integration:Unizone:UnizoneAdapterSettings:Password": "[variables('ClientZone:Integration:Unizone:UnizoneAdapterSettings:Password')]",
+            "ClientZoneEnvironment": "[variables('ClientZoneEnvironment')]",
+            "APPINSIGHTS_INSTRUMENTATIONKEY": "[reference(resourceId(variables('Unizone-RG'),'Microsoft.Insights/components', variables('InsightsComponentName')), '2018-05-01-preview').InstrumentationKey]",
+            "ClientZone:Integration:Core:AlsbSettings:CertificateThumbprint": "[variables('ClientZone:Integration:Core:AlsbSettings:CertificateThumbprint')]",
+            "WEBSITE_LOAD_CERTIFICATES": "[variables('ClientZone:Integration:Core:AlsbSettings:CertificateThumbprint')]",
+            "ClientZone:Integration:Unizone:UnizoneAdapterSettings:UnizoneTokenUrl": "[variables('ClientZone:Integration:Unizone:UnizoneAdapterSettings:UnizoneTokenUrl')]",
+            "ClientZone:CloudServices:FileStorage:StorageSettings:PublicStorageConnectionString": "[variables('ClientZone:CloudServices:FileStorage:StorageSettings:PublicStorageConnectionString')]"
+          }
+        },
+        {
+          "name": "connectionstrings",
+          "type": "config",
+          "apiVersion": "2016-08-01",
+          "dependsOn": [
+            "[resourceId('Microsoft.Web/sites',concat(variables('EnvironmentNamePrefix'),'-api-',variables('EnvironmentType')))]"
+          ],
+          "tags": {
+            "displayName": "ConnectionString"
+          },
+          "properties": {
+            "AppDataContext": {
+              "value": "[variables('AppDataContextApp')]",
+              "type": "SQLAzure"
+            },
+            "DataContext": {
+              "value": "[variables('DataContextApp')]",
+              "type": "SQLAzure"
+            },
+            "ServiceBus": {
+              "value": "[variables('ServiceBusEndpoint')]",
+              "type": "Custom"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

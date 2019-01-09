@@ -1,0 +1,177 @@
+﻿{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "EnvironmentNamePrefix": {
+      "value": "GLI"
+    },
+    "EnvironmentType": {
+      "value": "PROD"
+    },
+    "GliDBName": {
+      "value": "kz-gli-db-prod"
+    },
+    "GliSQLName": {
+      "value": "kz-gli-sql-prod"
+    },
+    "InsightsComponentName": {
+      "value": "KZ-UNIZONE-insights-PROD"
+    },
+    "UNIZONE-RG-name": {
+      "value": "KZ-UNIZONE-PROD"
+    },
+    "ServiceBusConnectionString": {
+      "value": "Endpoint=sb://kz-gli-bus-prod.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey="
+    },
+    "AppServiceSKU": {
+      "value": {
+        "family": "S",
+        "name": "S2",
+        "size": "S2",
+        "tier": "Standard",
+        "capacity": 1
+      }
+    },
+    "ClientZone:Integration:Unizone:UnizoneAdapterSettings:Password": {
+      "reference": {
+        "keyVault": {
+          "id": "/subscriptions/1f729d6a-c534-46fe-8a85-8cb2e7b369da/resourceGroups/cp-operations-management/providers/Microsoft.KeyVault/vaults/cp-prod-keyvault"
+        },
+        "secretName": "ClientZoneIntegrationUnizoneUnizoneAdapterSettingsPassword"
+      }
+    },
+    "ServiceBusSharedKey": {
+      "reference": {
+        "keyVault": {
+          "id": "/subscriptions/1f729d6a-c534-46fe-8a85-8cb2e7b369da/resourceGroups/cp-operations-management/providers/Microsoft.KeyVault/vaults/cp-prod-keyvault"
+        },
+        "secretName": "ServiceBusSharedKey"
+      }
+    },
+    "ClientZone:BusinessLogic:Security:SocialNetworkSettings:FacebookSecret": {
+      "reference": {
+        "keyVault": {
+          "id": "/subscriptions/1f729d6a-c534-46fe-8a85-8cb2e7b369da/resourceGroups/cp-operations-management/providers/Microsoft.KeyVault/vaults/cp-prod-keyvault"
+        },
+        "secretName": "ClientZoneBusinessLogicSecuritySocialNetworkSettingsFacebookSecret"
+      }
+    },
+    "ClientZone:Core:SecuritySettings:ClientZoneUserOperationWSPassword": {
+      "reference": {
+        "keyVault": {
+          "id": "/subscriptions/1f729d6a-c534-46fe-8a85-8cb2e7b369da/resourceGroups/cp-operations-management/providers/Microsoft.KeyVault/vaults/cp-prod-keyvault"
+        },
+        "secretName": "ClientZoneCoreSecuritySettingsClientZoneUserOperationWSPassword"
+      }
+    },
+    "ClientZone:Integration:Core:AlsbSettings:Password": {
+      "reference": {
+        "keyVault": {
+          "id": "/subscriptions/1f729d6a-c534-46fe-8a85-8cb2e7b369da/resourceGroups/cp-operations-management/providers/Microsoft.KeyVault/vaults/cp-prod-keyvault"
+        },
+        "secretName": "ClientZoneIntegrationCoreAlsbSettingsPassword"
+      }
+    },
+    "ClientZone:Core:SecuritySettings:TokenSecurityKey": {
+      "reference": {
+        "keyVault": {
+          "id": "/subscriptions/1f729d6a-c534-46fe-8a85-8cb2e7b369da/resourceGroups/cp-operations-management/providers/Microsoft.KeyVault/vaults/cp-prod-keyvault"
+        },
+        "secretName": "ClientZoneCoreSecuritySettingsTokenSecurityKey"
+      }
+    },
+    "ClientZone:Core:SecuritySettings:TokenECPointX": {
+      "reference": {
+        "keyVault": {
+          "id": "/subscriptions/1f729d6a-c534-46fe-8a85-8cb2e7b369da/resourceGroups/cp-operations-management/providers/Microsoft.KeyVault/vaults/cp-prod-keyvault"
+        },
+        "secretName": "ClientZoneCoreSecuritySettingsTokenECPointX"
+      }
+    },
+    "ClientZone:Core:SecuritySettings:TokenECPointY": {
+      "reference": {
+        "keyVault": {
+          "id": "/subscriptions/1f729d6a-c534-46fe-8a85-8cb2e7b369da/resourceGroups/cp-operations-management/providers/Microsoft.KeyVault/vaults/cp-prod-keyvault"
+        },
+        "secretName": "ClientZoneCoreSecuritySettingsTokenECPointY"
+      }
+    },
+    "AppDataContextAppUserName": {
+      "value": "kzgli_app_user"
+    },
+    "AppDataContextAppPassword": {
+      "reference": {
+        "keyVault": {
+          "id": "/subscriptions/1f729d6a-c534-46fe-8a85-8cb2e7b369da/resourceGroups/cp-operations-management/providers/Microsoft.KeyVault/vaults/cp-prod-keyvault"
+        },
+        "secretName": "AppDataContextAppPassword"
+      }
+    },
+    "AppDataContextPowerUserName": {
+      "value": "kzgli_app_poweruser"
+    },
+    "AppDataContextPowerPassword": {
+      "reference": {
+        "keyVault": {
+          "id": "/subscriptions/1f729d6a-c534-46fe-8a85-8cb2e7b369da/resourceGroups/cp-operations-management/providers/Microsoft.KeyVault/vaults/cp-prod-keyvault"
+        },
+        "secretName": "AppDataContextPowerPassword"
+      }
+    },
+    "DataContextAppUserName": {
+      "value": "kzgli_app_user"
+    },
+    "DataContextAppPassword": {
+      "reference": {
+        "keyVault": {
+          "id": "/subscriptions/1f729d6a-c534-46fe-8a85-8cb2e7b369da/resourceGroups/cp-operations-management/providers/Microsoft.KeyVault/vaults/cp-prod-keyvault"
+        },
+        "secretName": "DataContextAppPassword"
+      }
+    },
+    "DataContextPowerUserName": {
+      "value": "kzgli_app_poweruser"
+    },
+    "DataContextPowerPassword": {
+      "reference": {
+        "keyVault": {
+          "id": "/subscriptions/1f729d6a-c534-46fe-8a85-8cb2e7b369da/resourceGroups/cp-operations-management/providers/Microsoft.KeyVault/vaults/cp-prod-keyvault"
+        },
+        "secretName": "DataContextPowerPassword"
+      }
+    },
+    "ImportDataContextAppUserName": {
+      "value": "kzgli_app_user"
+    },
+    "ImportDataContextAppPassword": {
+      "reference": {
+        "keyVault": {
+          "id": "/subscriptions/1f729d6a-c534-46fe-8a85-8cb2e7b369da/resourceGroups/cp-operations-management/providers/Microsoft.KeyVault/vaults/cp-prod-keyvault"
+        },
+        "secretName": "ImportDataContextAppPassword"
+      }
+    },
+    "ImportDataContextPowerUserName": {
+      "value": "kzgli_app_poweruser"
+    },
+    "ImportDataContextPowerPassword": {
+      "reference": {
+        "keyVault": {
+          "id": "/subscriptions/1f729d6a-c534-46fe-8a85-8cb2e7b369da/resourceGroups/cp-operations-management/providers/Microsoft.KeyVault/vaults/cp-prod-keyvault"
+        },
+        "secretName": "ImportDataContextPowerPassword"
+      }
+    },
+    "FileStoreName": {
+      "value": "kzglistorageprod"
+    },
+    "FileStorePassword": {
+      "reference": {
+        "keyVault": {
+          "id": "/subscriptions/1f729d6a-c534-46fe-8a85-8cb2e7b369da/resourceGroups/cp-operations-management/providers/Microsoft.KeyVault/vaults/cp-prod-keyvault"
+        },
+        "secretName": "FileStorePassword"
+      }
+    }
+  }
+}

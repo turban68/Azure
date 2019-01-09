@@ -1,0 +1,310 @@
+﻿{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "EnvironmentNamePrefix": {
+      "type": "string",
+      "metadata": {
+        "description": "Environment name prefix identifier for name convention KZ-xx-Resource-Type"
+      }
+    },
+    "EnvironmentType": {
+      "type": "string",
+      "allowedValues": [
+        "PROD",
+        "TEST",
+        "DEV",
+        "mvSWONE"
+      ],
+      "metadata": {
+        "description": "Environment purpose identifier for name convention KZ-Prefix-Resource-xx"
+      }
+    },
+    "ServicesNames": {
+      "type": "array",
+      "metadata": {
+        "description": "List of names for individual app services"
+      }
+    },
+    "AppServiceSKU": {
+      "type": "object",
+      "metadata": {
+        "description": "Plan's pricing tier SKU. Check details at https://azure.microsoft.com/en-us/pricing/details/app-service/"
+      }
+    },
+    "StagingName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name extension for staging slot(s)"
+      }
+    },
+    "SqlServerAdminPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "SQL Server Admin Password - typically pulled from KeyVault"
+      }
+    },
+    "SqlSKU": {
+      "type": "object",
+      "metadata": {
+        "description": "SQL Server SKU object"
+      }
+    },
+    "SqlServerFirewallRules": {
+      "type": "array",
+      "metadata": {
+        "description": "SQL Server Firewall Rules Object containing also rule for AllowAllWindowsAzureIps"
+      }
+    },
+    "KZ-SSLCertificate": {
+      "type": "securestring",
+      "metadata": {
+        "description": "SSL certificate"
+      }
+    },
+    "KZ-SSLCertificatePassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "SSL certificate"
+      }
+    }
+  },
+  "variables": {
+    "AppServiceSKU": "[parameters('AppServiceSKU')]",
+    "BusNamespace": "[concat(variables('EnvironmentNamePrefix'), '-bus-', variables('EnvironmentType'))]",
+    "EnvironmentNamePrefix": "[concat('KZ-',parameters('EnvironmentNamePrefix'))]",
+    "EnvironmentType": "[parameters('EnvironmentType')]",
+    "Location": "[resourceGroup().location]",
+    "ServerFarmName": "[concat(variables('EnvironmentNamePrefix'), '-', variables('EnvironmentType'))]",
+    "ServicesNames": "[parameters('ServicesNames')]",
+    "SqlDatabaseCatalogCollation": "SQL_Latin1_General_CP1_CI_AS",
+    "SqlDatabaseCollation": "Czech_CI_AS",
+    "SqlDatabaseName": "[toLower(concat('KZ-',parameters('EnvironmentNamePrefix'),'-DB-',parameters('EnvironmentType')))]",
+    "SqlDatabaseZoneRedundant": false,
+    "SqlLocation": "[resourceGroup().location]",
+    "SqlServerAdminLogin": "SqlServerAdminLogin",
+    "SqlServerAdminPassword": "[parameters('SqlServerAdminPassword')]",
+    "SqlServerName": "[toLower(concat('KZ-',parameters('EnvironmentNamePrefix'),'-SQL-',parameters('EnvironmentType')))]",
+    "SqlSKU": "[parameters('SqlSKU')]",
+    "StagingName": "[parameters('StagingName')]",
+    "certificateName": "[concat('SSL Certificate',parameters('EnvironmentType'))]",
+    "KZ-SSLCertificate": "[parameters('KZ-SSLCertificate')]",
+    "KZ-SSLCertificatePassword": "[parameters('KZ-SSLCertificatePassword')]"
+  },
+  "resources": [
+    {
+      "apiVersion": "2018-02-01",
+      "type": "Microsoft.Web/serverfarms",
+      "comments": "Service App plán.",
+      "location": "[variables('Location')]",
+      "name": "[variables('ServerFarmName')]",
+      "sku": {
+        "name": "[variables('AppServiceSKU').name]",
+        "tier": "[variables('AppServiceSKU').tier]",
+        "size": "[variables('AppServiceSKU').size]",
+        "family": "[variables('AppServiceSKU').family]",
+        "capacity": "[variables('AppServiceSKU').capacity]"
+      },
+      "dependsOn": []
+    },
+    {
+      "type": "Microsoft.Web/sites",
+      "apiVersion": "2018-02-01",
+      "comments": "Websites - definition",
+      "copy": {
+        "count": "[length(variables('ServicesNames'))]",
+        "name": "copysites"
+      },
+      "location": "[variables('Location')]",
+      "name": "[concat(variables('EnvironmentNamePrefix'),'-',variables('ServicesNames')[copyIndex()],'-',variables('EnvironmentType'))]",
+      "properties": {
+        "enabled": true,
+        "hostNameSslStates": [
+          {
+            "name": "[concat(variables('EnvironmentNamePrefix'),'-',variables('ServicesNames')[copyIndex()],'-',variables('EnvironmentType'), '.azurewebsites.net')]",
+            "sslState": "Disabled",
+            "hostType": "Standard"
+          },
+          {
+            "name": "[concat(variables('EnvironmentNamePrefix'),'-',variables('ServicesNames')[copyIndex()],'-',variables('EnvironmentType'), '.scm.azurewebsites.net')]",
+            "sslState": "Disabled",
+            "hostType": "Repository"
+          }
+        ],
+        "serverFarmId": "[concat(variables('EnvironmentNamePrefix'),'-',variables('EnvironmentType'))]",
+        "comments": "Properities to be done ...",
+        "siteConfig": {
+          "phpVersion": "",
+          "use32BitWorkerProcess": true,
+          "alwaysOn": true,
+          "http20Enabled": "True",
+          "ftpsState": "FtpsOnly"
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/serverfarms', variables('ServerFarmName'))]"
+      ]
+    },
+    {
+      "condition": "[not(equals(variables('ServicesNames')[copyIndex()],'jobdatabase'))]",
+      "apiVersion": "2018-02-01",
+      "type": "Microsoft.Web/sites/slots",
+      "comments": "Staging slots.",
+      "copy": {
+        "count": "[length(variables('ServicesNames'))]",
+        "name": "copystagings"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/serverfarms', variables('ServerFarmName'))]",
+        "[resourceId('Microsoft.Web/sites', concat(variables('EnvironmentNamePrefix'),'-',variables('ServicesNames')[copyIndex()],'-',variables('EnvironmentType')))]"
+      ],
+      "kind": "app",
+      "location": "[variables('Location')]",
+      "name": "[concat(variables('EnvironmentNamePrefix'),'-',variables('ServicesNames')[copyIndex()],'-',variables('EnvironmentType'),'/',variables('StagingName'))]",
+      "properties": {
+        "enabled": true,
+        "hostNameSslStates": [
+          {
+            "name": "[concat(variables('EnvironmentNamePrefix'),'-',variables('ServicesNames')[copyIndex()],'-',variables('EnvironmentType'), '-',variables('StagingName'),'.azurewebsites.net')]",
+            "sslState": "Disabled",
+            "virtualIP": null,
+            "thumbprint": null,
+            "toUpdate": null,
+            "hostType": "Standard"
+          },
+          {
+            "name": "[concat(variables('EnvironmentNamePrefix'),'-',variables('ServicesNames')[copyIndex()],'-',variables('EnvironmentType'), '-',variables('StagingName'),'.scm.azurewebsites.net')]",
+            "sslState": "Disabled",
+            "virtualIP": null,
+            "thumbprint": null,
+            "toUpdate": null,
+            "hostType": "Repository"
+          }
+        ]
+      }
+    },
+    {
+      "comments": "SQL Server deployment object",
+      "name": "[variables('SqlServerName')]",
+      "type": "Microsoft.Sql/servers",
+      "location": "[variables('SqlLocation')]",
+      "apiVersion": "2015-05-01-preview",
+      "properties": {
+        "administratorLogin": "[variables('SqlServerAdminLogin')]",
+        "administratorLoginPassword": "[variables('SqlServerAdminPassword')]"
+      },
+      "dependsOn": [],
+      "resources": [
+        {
+          "comments": "SQL Database deployment object",
+          "name": "[variables('SqlDatabaseName')]",
+          "type": "databases",
+          "location": "[variables('SqlLocation')]",
+          "apiVersion": "2017-03-01-preview",
+          "sku": {
+            "name": "[variables('SqlSKU').name]",
+            "tier": "[variables('SqlSKU').tier]"
+          },
+          "properties": {
+            "collation": "[variables('SqlDatabaseCollation')]",
+            "catalogCollation": "[variables('SqlDatabaseCatalogCollation')]",
+            "zoneRedundant": "[variables('SqlDatabaseZoneRedundant')]"
+          },
+          "dependsOn": [
+            "[resourceId('Microsoft.Sql/servers', variables('SqlServerName'))]"
+          ]
+        }
+      ]
+    },
+    {
+      "comments": "SQL Firewall Rules deployment object - deplying FW rules in loop based on SqlServerFirewallRules parameters array ",
+      "name": "[concat(variables('SqlServerName'),'/',parameters('SqlServerFirewallRules')[copyIndex()].name)]",
+      "type": "Microsoft.Sql/servers/firewallrules",
+      "apiVersion": "2015-05-01-preview",
+      "copy": {
+        "name": "SqlServerFirewallRulesLoop",
+        "count": "[length(parameters('SqlServerFirewallRules'))]"
+      },
+      "properties": {
+        "startIpAddress": "[parameters('SqlServerFirewallRules')[copyIndex()].startIpAddress]",
+        "endIpAddress": "[parameters('SqlServerFirewallRules')[copyIndex()].endIpAddress]"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Sql/servers', variables('SqlServerName'))]"
+      ]
+
+    },
+    {
+      "name": "[concat('Failure Anomalies - ', variables('EnvironmentNamePrefix'),'-',variables('ServicesNames')[copyIndex()], '-',variables('EnvironmentType'))]",
+      "type": "Microsoft.Insights/alertrules",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2014-04-01",
+      "copy": {
+        "count": "[length(variables('ServicesNames'))]",
+        "name": "copyalertRulesites"
+      },
+      "dependsOn": [
+        "[concat(variables('EnvironmentNamePrefix'),'-',variables('ServicesNames')[copyIndex()],'-',variables('EnvironmentType'))]"
+      ],
+      "tags": {
+        "[concat('hidden-link:', resourceId(resourceGroup().name, 'Microsoft.Web/sites', concat(variables('EnvironmentNamePrefix'),'-',variables('ServicesNames')[copyIndex()],'-',variables('EnvironmentType'))))]": "Resource",
+        "displayName": "[concat('ServerErrors Failure Anomalies -',variables('ServicesNames')[copyIndex()], '-',variables('EnvironmentType'))]"
+      },
+      "properties": {
+        "name": "[concat('Failure Anomalies - ', variables('EnvironmentNamePrefix'),'-',variables('ServicesNames')[copyIndex()], '-',variables('EnvironmentType'))]",
+        "description": "[concat('Failure Anomalies - ', variables('ServicesNames')[copyIndex()], '-',variables('EnvironmentType'), ' has some server errors, status code 5xx.')]",
+        "isEnabled": true,
+        "condition": {
+          "odata.type": "Microsoft.Azure.Management.Insights.Models.ThresholdRuleCondition",
+          "dataSource": {
+            "odata.type": "Microsoft.Azure.Management.Insights.Models.RuleMetricDataSource",
+            "resourceUri": "[resourceId(resourceGroup().name, 'Microsoft.Web/sites', concat(variables('EnvironmentNamePrefix'), '-', variables('ServicesNames')[copyIndex()], '-',variables('EnvironmentType')))]",
+            "metricName": "Http5xx"
+          },
+          "operator": "GreaterThan",
+          "threshold": 2,
+          "windowSize": "PT1H"
+        },
+        "action": {
+          "odata.type": "Microsoft.Azure.Management.Insights.Models.RuleEmailAction",
+          "sendToServiceOwners": true,
+          "customEmails": []
+        }
+      }
+
+    },
+    {
+      "apiVersion": "2015-08-01",
+      "name": "[variables('certificateName')]",
+      "type": "Microsoft.Web/certificates",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "pfxBlob": "[parameters('KZ-SSLCertificate')]",
+        "password": "[parameters('KZ-SSLCertificatePassword')]"
+      },
+      "tags": {
+        "displayName": "Certificate"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/serverfarms', variables('ServerFarmName'))]"
+      ]
+
+    }
+
+  ],
+  "outputs": {
+
+    "UniDbName": {
+      "type": "string",
+      "value": "[variables('SqlDatabaseName')]"
+    },
+    "UniSQLName": {
+      "type": "string",
+      "value": "[variables('SqlServerName')]"
+    },
+    "certificateThumbprint": {
+      "type": "string",
+      "value": "[reference(resourceId('Microsoft.Web/certificates', variables('certificateName')), providers('Microsoft.Web', 'certificates').apiVersions[0]).thumbprint]"
+    }
+  }
+}

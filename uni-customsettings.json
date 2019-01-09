@@ -1,0 +1,304 @@
+﻿{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "EnvironmentNamePrefix": {
+      "type": "string",
+      "metadata": {
+        "description": "Environment name prefix identifier for name convention KZ-xx-Resource-Type"
+      }
+    },
+    "EnvironmentType": {
+      "type": "string",
+      "allowedValues": [
+        "PROD",
+        "TEST",
+        "DEV",
+        "mvSWONE"
+      ],
+      "metadata": {
+        "description": "Environment purpose identifier for name convention KZ-Prefix-Resource-xx"
+      }
+    },
+    "ClientZone:BusinessLogic:Security:SocialNetworkSettings:FacebookSecret": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Facebook password"
+      }
+    },
+    "Unizone:BusinessLogic:Security:SocialNetworkSettings:GoogleClientSecret": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Google password"
+      }
+    },
+    "Unizone:Core:Security:SecuritySettings:TokenSecurityKey": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Token security key"
+      }
+    },
+    "Unizone:Core:Security:SecuritySettings:TokenECPointX": {
+      "type": "securestring",
+      "metadata": {
+        "description": "TokenECPointX"
+      }
+    },
+    "Unizone:Core:Security:SecuritySettings:TokenECPointY": {
+      "type": "securestring",
+      "metadata": {
+        "description": "TokenECPointY"
+      }
+    },
+    "Unizone:Integration:ApiManagement:ApiManagementAdapterSettings:Password": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Api managememnt adapter password"
+      }
+    },
+    "AppDataContextAppUserName": {
+      "type": "string",
+      "metadata": {
+        "description": "Username for AppDataContext aplication user"
+      }
+    },
+    "AppDataContextAppPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Password for AppDataContext aplication user"
+      }
+    },
+    "AppDataContextPowerUserName": {
+      "type": "string",
+      "metadata": {
+        "description": "Username for AppDataContext power user"
+      }
+    },
+    "AppDataContextPowerPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Password for AppDataContext power user"
+      }
+    },
+    "UniDBName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of DB schema"
+      }
+    },
+    "UniSQLName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of SQL server"
+      }
+    }
+  },
+  "variables": {
+    "EnvironmentNamePrefix": "[concat('KZ-',parameters('EnvironmentNamePrefix'))]",
+    "EnvironmentType": "[parameters('EnvironmentType')]",
+    "ServerFarmName": "[concat(variables('EnvironmentNamePrefix'), '-', variables('EnvironmentType'))]",
+    "Location": "[resourceGroup().location]",
+    "AppDataContextApp": "[concat('Server=tcp:',parameters('UniSQLName'),'.database.windows.net,1433;Initial Catalog=',parameters('UniDBName'),';Persist Security Info=False;User ID=',parameters('AppDataContextAppUserName'),';Password=',parameters('AppDataContextAppPassword'),';MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;')]",
+    "AppDataContextPower": "[concat('Server=tcp:',parameters('UniSQLName'),'.database.windows.net,1433;Initial Catalog=',parameters('UniDBName'),';Persist Security Info=False;User ID=',parameters('AppDataContextPowerUserName'),';Password=',parameters('AppDataContextPowerPassword'),';MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;')]",
+    "AppInsightName": "[concat(variables('EnvironmentNamePrefix'),'-insights-',variables('EnvironmentType'))]",
+    "ClientZoneEnvironment": "AzureDevelop",
+    "Unizone:Api:Core:ApiCoreSettings:ApplicationRoute": "api-uni",
+    "Unizone:BusinessLogic:Security:SocialNetworkSettings:FacebookAccessTokenUrl": "https://graph.facebook.com/v3.0/oauth/access_token",
+    "Unizone:BusinessLogic:Security:SocialNetworkSettings:FacebookAppId": "326787934828180",
+    "Unizone:BusinessLogic:Security:SocialNetworkSettings:FacebookSecret": "[parameters('ClientZone:BusinessLogic:Security:SocialNetworkSettings:FacebookSecret')]",
+    "Unizone:BusinessLogic:Security:SocialNetworkSettings:FacebookValidateTokenUrl": "https://graph.facebook.com/v3.0/debug_token",
+    "Unizone:BusinessLogic:Security:SocialNetworkSettings:GoogleClientId": "1087407089674-bfhsvd8r3je673b8j04ahbt7orbc651b.apps.googleusercontent.com",
+    "Unizone:BusinessLogic:Security:SocialNetworkSettings:GoogleClientSecret": "[parameters('Unizone:BusinessLogic:Security:SocialNetworkSettings:GoogleClientSecret')]",
+    "Unizone:BusinessLogic:Security:SocialNetworkSettings:GoogleValidateTokenUrl": "https://www.googleapis.com/oauth2/v3/tokeninfo",
+    "Unizone:Common:Settings:AppCommonSettings:FrontEndUrl": "https://moje.generali.cz",
+    "Unizone:Core:Security:SecuritySettings:AllowedCORS": "https://www.googleapis.com;https://moje.generali.cz;http://generali.cz;http://kg.zvladnu.cz;https://klubgenerali.cz",
+    "Unizone:Core:Security:SecuritySettings:TokenECPointX": "[parameters('Unizone:Core:Security:SecuritySettings:TokenECPointX')]",
+    "Unizone:Core:Security:SecuritySettings:TokenECPointY": "[parameters('Unizone:Core:Security:SecuritySettings:TokenECPointY')]",
+    "Unizone:Core:Security:SecuritySettings:TokenSecurityKey": "[parameters('Unizone:Core:Security:SecuritySettings:TokenSecurityKey')]",
+    "Unizone:Core:Security:SecuritySettings:TokenValidAudiences": "uni",
+    "Unizone:Core:Security:SecuritySettings:TokenValidIssuer": "moje.generali.cz/api-uni",
+    "Unizone:Integration:ApiManagement:ApiManagementAdapterSettings:Login": "api_kz",
+    "Unizone:Integration:ApiManagement:ApiManagementAdapterSettings:Password": "[parameters('Unizone:Integration:ApiManagement:ApiManagementAdapterSettings:Password')]",
+    "Unizone:Integration:ApiManagement:ApiManagementAdapterSettings:ServiceUrl": "https://api.cpas.cz/token"
+  },
+  "resources": [
+    {
+      "apiVersion": "2018-02-01",
+      "type": "Microsoft.Web/serverfarms",
+      "comments": "Service App plán.",
+      "location": "[variables('Location')]",
+      "name": "[variables('ServerFarmName')]",
+      "dependsOn": []
+    },
+    {
+      "type": "Microsoft.Web/sites",
+      "apiVersion": "2018-02-01",
+      "comments": "API",
+      "location": "[variables('Location')]",
+      "name": "[concat(variables('EnvironmentNamePrefix'),'-api-',variables('EnvironmentType'))]",
+      "properties": {
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/serverfarms',variables('ServerFarmName'))]"
+      ],
+      "resources": [
+        {
+          "name": "appsettings",
+          "type": "config",
+          "apiVersion": "2015-08-01",
+          "dependsOn": [
+            "[resourceId('Microsoft.Web/sites',concat(variables('EnvironmentNamePrefix'),'-api-',variables('EnvironmentType')))]",
+            "[resourceId('Microsoft.Insights/components', variables('AppInsightName'))]"
+          ],
+          "tags": {
+            "displayName": "Custom Settings"
+          },
+          "properties": {
+            "ClientZoneEnvironment": "AzureDevelop",
+            "Unizone:Api:Core:ApiCoreSettings:ApplicationRoute": "api-uni",
+            "Unizone:BusinessLogic:Security:SocialNetworkSettings:FacebookAccessTokenUrl": "[variables('Unizone:BusinessLogic:Security:SocialNetworkSettings:FacebookAccessTokenUrl')]",
+            "Unizone:BusinessLogic:Security:SocialNetworkSettings:FacebookAppId": "[variables('Unizone:BusinessLogic:Security:SocialNetworkSettings:FacebookAppId')]",
+            "Unizone:BusinessLogic:Security:SocialNetworkSettings:FacebookSecret": "[variables('Unizone:BusinessLogic:Security:SocialNetworkSettings:FacebookSecret')]",
+            "Unizone:BusinessLogic:Security:SocialNetworkSettings:FacebookValidateTokenUrl": "[variables('Unizone:BusinessLogic:Security:SocialNetworkSettings:FacebookValidateTokenUrl')]",
+            "Unizone:BusinessLogic:Security:SocialNetworkSettings:GoogleClientId": "[variables('Unizone:BusinessLogic:Security:SocialNetworkSettings:GoogleClientId')]",
+            "Unizone:BusinessLogic:Security:SocialNetworkSettings:GoogleClientSecret": "[variables('Unizone:BusinessLogic:Security:SocialNetworkSettings:GoogleClientSecret')]",
+            "Unizone:BusinessLogic:Security:SocialNetworkSettings:GoogleValidateTokenUrl": "[variables('Unizone:BusinessLogic:Security:SocialNetworkSettings:GoogleValidateTokenUrl')]",
+            "Unizone:Common:Settings:AppCommonSettings:FrontEndUrl": "[variables('Unizone:Common:Settings:AppCommonSettings:FrontEndUrl')]",
+            "Unizone:Core:Security:SecuritySettings:AllowedCORS": "[variables('Unizone:Core:Security:SecuritySettings:AllowedCORS')]",
+            "Unizone:Core:Security:SecuritySettings:TokenECPointX": "[variables('Unizone:Core:Security:SecuritySettings:TokenECPointX')]",
+            "Unizone:Core:Security:SecuritySettings:TokenECPointY": "[variables('Unizone:Core:Security:SecuritySettings:TokenECPointY')]",
+            "Unizone:Core:Security:SecuritySettings:TokenSecurityKey": "[variables('Unizone:Core:Security:SecuritySettings:TokenSecurityKey')]",
+            "Unizone:Core:Security:SecuritySettings:TokenValidAudiences": "[variables('Unizone:Core:Security:SecuritySettings:TokenValidAudiences')]",
+            "Unizone:Core:Security:SecuritySettings:TokenValidIssuer": "[variables('Unizone:Core:Security:SecuritySettings:TokenValidIssuer')]",
+            "Unizone:Integration:ApiManagement:ApiManagementAdapterSettings:Login": "[variables('Unizone:Integration:ApiManagement:ApiManagementAdapterSettings:Login')]",
+            "Unizone:Integration:ApiManagement:ApiManagementAdapterSettings:Password": "[variables('Unizone:Integration:ApiManagement:ApiManagementAdapterSettings:Password')]",
+            "Unizone:Integration:ApiManagement:ApiManagementAdapterSettings:ServiceUrl": "[variables('Unizone:Integration:ApiManagement:ApiManagementAdapterSettings:ServiceUrl')]",
+            "APPINSIGHTS_INSTRUMENTATIONKEY": "[reference(resourceId('Microsoft.Insights/components', variables('AppInsightName')), '2018-05-01-preview').InstrumentationKey]"
+          }
+        },
+        {
+          "name": "connectionstrings",
+          "type": "config",
+          "apiVersion": "2015-08-01",
+          "dependsOn": [
+            "[resourceId('Microsoft.Web/sites',concat(variables('EnvironmentNamePrefix'),'-api-',variables('EnvironmentType')))]"
+          ],
+          "tags": {
+            "displayName": "ConnectionString"
+          },
+          "properties": {
+            "AppDataContext": {
+              "value": "[variables('AppDataContextApp')]",
+              "type": "SQLAzure"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "type": "Microsoft.Web/sites",
+      "apiVersion": "2018-02-01",
+      "comments": "JOBDATABASE",
+      "location": "[variables('Location')]",
+      "name": "[concat(variables('EnvironmentNamePrefix'),'-jobdatabase-',variables('EnvironmentType'))]",
+      "properties": {
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/serverfarms',variables('ServerFarmName'))]"
+      ],
+      "resources": [
+        {
+          "name": "appsettings",
+          "type": "config",
+          "apiVersion": "2015-08-01",
+          "dependsOn": [
+            "[resourceId('Microsoft.Web/sites',concat(variables('EnvironmentNamePrefix'),'-jobdatabase-',variables('EnvironmentType')))]",
+            "[resourceId('Microsoft.Insights/components', variables('AppInsightName'))]"
+          ],
+          "tags": {
+            "displayName": "Custom Settings"
+          },
+          "properties": {
+            "Unizone:Api:Core:ApiCoreSettings:ApplicationRoute": "database-uni",
+            "APPINSIGHTS_INSTRUMENTATIONKEY": "[reference(resourceId('Microsoft.Insights/components', variables('AppInsightName')), '2018-05-01-preview').InstrumentationKey]"
+          }
+        },
+        {
+          "name": "connectionstrings",
+          "type": "config",
+          "apiVersion": "2015-08-01",
+          "dependsOn": [
+            "[resourceId('Microsoft.Web/sites',concat(variables('EnvironmentNamePrefix'),'-jobdatabase-',variables('EnvironmentType')))]"
+          ],
+          "tags": {
+            "displayName": "ConnectionString"
+          },
+          "properties": {
+            "AppDataContext": {
+              "value": "[variables('AppDataContextPower')]",
+              "type": "SQLAzure"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "type": "Microsoft.Web/sites",
+      "apiVersion": "2018-02-01",
+      "comments": "STATIC",
+      "location": "[variables('Location')]",
+      "name": "[concat(variables('EnvironmentNamePrefix'),'-static-',variables('EnvironmentType'))]",
+      "properties": {
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/serverfarms',variables('ServerFarmName'))]"
+      ],
+      "resources": [
+        {
+          "name": "appsettings",
+          "type": "config",
+          "apiVersion": "2015-08-01",
+          "dependsOn": [
+            "[resourceId('Microsoft.Web/sites',concat(variables('EnvironmentNamePrefix'),'-static-',variables('EnvironmentType')))]",
+            "[resourceId('Microsoft.Insights/components', variables('AppInsightName'))]"
+          ],
+          "tags": {
+            "displayName": "Custom Settings"
+          },
+          "properties": {
+            "APPINSIGHTS_INSTRUMENTATIONKEY": "[reference(resourceId('Microsoft.Insights/components', variables('AppInsightName')), '2018-05-01-preview').InstrumentationKey]"
+          }
+        }
+      ]
+    },
+    {
+      "apiVersion": "2018-05-01-preview",
+      "name": "[concat(variables('EnvironmentNamePrefix'),'-insights-',variables('EnvironmentType'))]",
+      "type": "Microsoft.Insights/components",
+      "kind": "web",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/sites/', concat(variables('EnvironmentNamePrefix'),'-api-',variables('EnvironmentType')) )]",
+        "[resourceId('Microsoft.Web/sites/', concat(variables('EnvironmentNamePrefix'),'-jobdatabase-',variables('EnvironmentType')) )]",
+        "[resourceId('Microsoft.Web/sites/', concat(variables('EnvironmentNamePrefix'),'-static-',variables('EnvironmentType')) )]"
+      ],
+      "tags": {
+        "[concat('hidden-link:', resourceGroup().id, '/providers/Microsoft.Web/sites/', concat(variables('EnvironmentNamePrefix'),'-api-',variables('EnvironmentType')))]": "Resource",
+        "[concat('hidden-link:', resourceGroup().id, '/providers/Microsoft.Web/sites/', concat(variables('EnvironmentNamePrefix'),'-jobdatabase-',variables('EnvironmentType')))]": "Resource",
+        "[concat('hidden-link:', resourceGroup().id, '/providers/Microsoft.Web/sites/', concat(variables('EnvironmentNamePrefix'),'-static-',variables('EnvironmentType')))]": "Resource"
+      },
+      "properties": {
+      }
+    }
+  ],
+  "outputs": {
+    "UNIZONEResourceGroup": {
+      "type": "string",
+      "value": "[resourceGroup().name]"
+    },
+    "AppInsightName": {
+      "type": "string",
+      "value": "[variables('AppInsightName')]"
+    }
+  }
+}

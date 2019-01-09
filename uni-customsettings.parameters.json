@@ -1,0 +1,95 @@
+﻿{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "EnvironmentNamePrefix": {
+      "value": "UNIZONE"
+    },
+    "EnvironmentType": {
+      "value": "PROD"
+    },
+    "UniDBName": {
+      "value": "kz-unizone-db-prod"
+    },
+    "UniSQLName": {
+      "value": "kz-unizone-sql-prod"
+    },
+    "ClientZone:BusinessLogic:Security:SocialNetworkSettings:FacebookSecret": {
+      "reference": {
+        "keyVault": {
+          "id": "/subscriptions/1f729d6a-c534-46fe-8a85-8cb2e7b369da/resourceGroups/cp-operations-management/providers/Microsoft.KeyVault/vaults/cp-prod-keyvault"
+        },
+        "secretName": "ClientZoneBusinessLogicSecuritySocialNetworkSettingsFacebookSecret"
+      }
+    },
+    "Unizone:BusinessLogic:Security:SocialNetworkSettings:GoogleClientSecret": {
+      "reference": {
+        "keyVault": {
+          "id": "/subscriptions/1f729d6a-c534-46fe-8a85-8cb2e7b369da/resourceGroups/cp-operations-management/providers/Microsoft.KeyVault/vaults/cp-prod-keyvault"
+        },
+        "secretName": "UnizoneBusinessLogicSecuritySocialNetworkSettingsGoogleClientSecret"
+      }
+    },
+    "Unizone:Core:Security:SecuritySettings:TokenSecurityKey": {
+      "reference": {
+        "keyVault": {
+          "id": "/subscriptions/1f729d6a-c534-46fe-8a85-8cb2e7b369da/resourceGroups/cp-operations-management/providers/Microsoft.KeyVault/vaults/cp-prod-keyvault"
+        },
+        "secretName": "UnizoneCoreSecuritySettingsTokenSecurityKey"
+      }
+    },
+
+
+    "Unizone:Core:Security:SecuritySettings:TokenECPointX": {
+      "reference": {
+        "keyVault": {
+          "id": "/subscriptions/1f729d6a-c534-46fe-8a85-8cb2e7b369da/resourceGroups/cp-operations-management/providers/Microsoft.KeyVault/vaults/cp-prod-keyvault"
+        },
+        "secretName": "UnizoneCoreSecuritySettingsTokenECPointX"
+      }
+    },
+    "Unizone:Core:Security:SecuritySettings:TokenECPointY": {
+      "reference": {
+        "keyVault": {
+          "id": "/subscriptions/1f729d6a-c534-46fe-8a85-8cb2e7b369da/resourceGroups/cp-operations-management/providers/Microsoft.KeyVault/vaults/cp-prod-keyvault"
+        },
+        "secretName": "UnizoneCoreSecuritySettingsTokenECPointY"
+      }
+    },
+
+
+    "Unizone:Integration:ApiManagement:ApiManagementAdapterSettings:Password": {
+      "reference": {
+        "keyVault": {
+          "id": "/subscriptions/1f729d6a-c534-46fe-8a85-8cb2e7b369da/resourceGroups/cp-operations-management/providers/Microsoft.KeyVault/vaults/cp-prod-keyvault"
+        },
+        "secretName": "UnizoneIntegrationApiManagementApiManagementAdapterSettingsPassword"
+      }
+    },
+    "AppDataContextAppUserName": {
+      "value": "unizone_app_user"
+    },
+    "AppDataContextAppPassword": {
+      "reference": {
+        "keyVault": {
+          "id": "/subscriptions/1f729d6a-c534-46fe-8a85-8cb2e7b369da/resourceGroups/cp-operations-management/providers/Microsoft.KeyVault/vaults/cp-prod-keyvault"
+        },
+        "secretName": "AppDataContextAppPassword"
+      }
+    },
+    "AppDataContextPowerUserName": {
+      "value": "unizone_app_poweruser"
+    },
+    "AppDataContextPowerPassword": {
+      "reference": {
+        "keyVault": {
+          "id": "/subscriptions/1f729d6a-c534-46fe-8a85-8cb2e7b369da/resourceGroups/cp-operations-management/providers/Microsoft.KeyVault/vaults/cp-prod-keyvault"
+        },
+        "secretName": "AppDataContextPowerPassword"
+      }
+    }
+
+  }
+}
+
+
